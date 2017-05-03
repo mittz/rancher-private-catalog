@@ -1,0 +1,59 @@
+version: '2'
+services:
+  uidbuilder:
+    image: mittz/ui-driver-ecl:latest
+    stdin_open: true
+    network_mode: none
+    volumes:
+    - /uidbinary
+    tty: true
+    command:
+    - ash
+    - -c
+    - cp -Rpf /ui-driver-ecl/dist/ /uidbinary
+    labels:
+      rancher-machine-driver-ecl.role: uidbuilder
+      io.rancher.container.start_once: 'true'
+      io.rancher.container.pull_image: always
+  loadbalancer:
+    image: rancher/lb-service-haproxy:v0.6.2
+    ports:
+    - 80:80/tcp
+    labels:
+      io.rancher.container.agent.role: environmentAdmin
+      io.rancher.container.create_agent: 'true'
+  provider:
+    image: nginx:1.11.12-alpine
+    stdin_open: true
+    tty: true
+    volumes_from:
+    - dmdbuilder
+    - uidbuilder
+    command:
+    - ash
+    - -c
+    - cp -Rpf /dmdbinary/ /usr/share/nginx/html && cp -Rpf /uidbinary/ /usr/share/nginx/html && nginx -g 'daemon off;'
+    labels:
+      io.rancher.container.pull_image: always
+      io.rancher.sidekicks: dmdbuilder,uidbuilder
+  dmdbuilder:
+    image: mittz/docker-machine-driver-ecl:v1.0.0
+    stdin_open: true
+    network_mode: none
+    volumes:
+    - /dmdbinary
+    tty: true
+    command:
+    - sh
+    - -c
+    - tar zcvf /dmdbinary/docker-machine-driver-ecl-v1.0.0-linux-amd64.tar.gz -C /usr/local/bin/ docker-machine-driver-ecl
+    labels:
+      rancher-machine-driver-ecl.role: dmdbuilder
+      io.rancher.container.start_once: 'true'
+      io.rancher.container.pull_image: always
+  rancherserver:
+    image: rancher/server
+    stdin_open: true
+    tty: true
+    labels:
+      io.rancher.container.pull_image: always
