@@ -2,6 +2,35 @@ version: '2'
 catalog:
   name: Rancher Machine Driver Development
   version: v1.0.0
+  questions:
+    - variable: "rmd_hostname"
+      description: |
+        Rancher machine driver provider hostname
+      label: "RMD provider Hostname:"
+      default: "rmd.rancher.jp2.kudamono.info"
+      required: true
+      type: "string"
+    - variable: "rmd_ext_port"
+      description: |
+        Rancher machine driver external port
+      label: "RMD provider External Port:"
+      default: "80"
+      required: true
+      type: "int"
+    - variable: "trs_ext_port"
+      description: |
+        Test Rancher server external port
+      label: "Test Rancher server External Port:"
+      default: "80"
+      required: true
+      type: "int"
+    - variable: "trs_hostname"
+      description: |
+        Test Rancher server hostname
+      label: "Test Rancher server Hostname:"
+      default: "test.rancher.jp2.kudamono.info"
+      required: true
+      type: "string"
 services:
   uidbuilder:
     scale: 1
@@ -12,19 +41,19 @@ services:
     lb_config:
       certs: []
       port_rules:
-      - hostname: rmd.rancher.jp2.kudamono.info
+      - hostname: $rmd_hostname
         path: ''
         priority: 1
         protocol: http
         service: provider
-        source_port: 80
+        source_port: $rmd_ext_port
         target_port: 80
-      - hostname: test.rancher.jp2.kudamono.info
+      - hostname: $trs_hostname
         path: ''
         priority: 2
         protocol: http
         service: provider
-        source_port: 80
+        source_port: $trs_ext_port
         target_port: 8080
     health_check:
       response_timeout: 2000
