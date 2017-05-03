@@ -1,4 +1,7 @@
 version: '2'
+catalog:
+  name: Rancher Machine Driver Development
+  version: v1.0.0
 services:
   uidbuilder:
     scale: 1
